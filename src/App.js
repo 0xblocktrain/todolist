@@ -5,6 +5,9 @@ import { CONTRACT_ABI, CONTRACT_ADDRESS } from "./contract";
 
 function App() {
 	const [tasks, setTasks] = useState([]);
+  const [inputTask, setInputTask] = useState(null)
+
+  // console.log("INPUT ", inputTask)
 
 	const { address } = useAccount();
 	const { data: signer } = useSigner();
@@ -38,6 +41,20 @@ function App() {
 		}
 	};
 
+  const addNewTask = async() => {
+    try {
+      const newTask = await contract.addTask(inputTask)
+      console.log(newTask)
+      await newTask.wait()
+      console.log(newTask)
+      setTasks(prev => [...prev, [inputTask, false]])
+      setInputTask(null)
+      document.getElementById('input-task').value = ""
+    } catch(err) {
+      console.log(err)
+    }
+  }
+
 	useEffect(() => {
 		if (contract) {
 			getTasks();
@@ -58,17 +75,24 @@ function App() {
 				{!address && <ConnectButton />}
 
         {/* Add Task */}
+        <div className="flex flex-row items-center justify-center gap-4">
+          <input id="input-task" onChange={(e) => setInputTask(e.target.value)} className="px-4 py-2 rounded-xl text-black" placeholder="Add a task..." />
+          <button onClick={addNewTask} className="px-4 py-2 rounded-xl border border-green-400 bg-white text-black transform hover:scale-105">Add Task</button>
+        </div>
 
         {/* All Tasks */}
 				<div className="flex items-center justify-center flex-col">
 					{tasks.length > 0 &&
 						tasks.map((taskItem, i) => {
 							return (
-								<div className="flex items-center justify-between" key={i}>
+								<div key={i}>
                   {/* Check if task is not completed */}
                   {
                     !taskItem[1] && (
-                      <p>{taskItem[0]}</p>
+                      <div className="flex items-center justify-between gap-3 py-2">
+                        <p>{taskItem[0]}</p>
+                        <button className="px-2 rounded-xl bg-white text-black border border-blue-400 transform hover:scale-105">Complete</button>
+                      </div>
                     )
                   }
 								</div>
